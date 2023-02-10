@@ -49,6 +49,7 @@ private:
 	bool m_isPlaying;
 
 	World m_world;
+	bool m_gameover = false;
 	bool m_has_won = false;
 	vect2d m_pressed_tile;
 

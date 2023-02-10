@@ -136,6 +136,15 @@ World::REVEAL_RESULT World::RevealTile(unsigned int x, unsigned int y)
 	return UNKNOWN;
 }
 
+void World::RevealAllMines()
+{
+	for (int i = 0; i < width * height; ++i)
+	{
+		if (tiles_arr[i].has_mine)
+			tiles_arr[i].is_revealed = true;
+	}
+}
+
 void World::DrawTiles(Renderer2D* renderer) const
 {
 	for (int i = 0; i < width; i++)

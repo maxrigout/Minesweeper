@@ -27,6 +27,7 @@ struct World
 	const Tile& GetTile(unsigned int x, unsigned int y) const;
 
 	REVEAL_RESULT RevealTile(unsigned int x, unsigned int y);
+	void RevealAllMines();
 
 	void DrawTiles(Renderer2D* renderer) const;
 

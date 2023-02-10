@@ -54,8 +54,11 @@ void Game::InitSDL(int width, int height)
 void Game::InitWorld()
 {
 	m_has_won = false;
-	m_renderer.tileWidth = m_renderer.windowWidth / m_world_w;
-	m_renderer.tileHeight = m_renderer.windowWidth / m_world_h;
+	unsigned int maxCellWidth = m_renderer.windowWidth / m_world_w;
+	unsigned int maxCellHeight = m_renderer.windowHeight / m_world_h;
+	unsigned int cellSize = maxCellWidth > maxCellHeight ? maxCellHeight : maxCellWidth;
+	m_renderer.tileWidth = cellSize;
+	m_renderer.tileHeight = cellSize;
 	m_world.Init(m_world_w, m_world_h, m_nMines);
 }
 
@@ -146,6 +149,8 @@ bool Game::IsMouseButtonJustReleased(MouseButton button)
 
 void Game::Update(float dt)
 {
+	if (m_gameover || m_has_won)
+		return;
 	vect2d worldMouse = { m_mousePos.x / m_renderer.tileWidth, m_mousePos.y / m_renderer.tileHeight };
 	int click_result = -1;
 	if (IsMouseButtonJustPressed(MouseButton::LEFT))
@@ -182,10 +187,12 @@ void Game::Update(float dt)
 
 	if (click_result == World::REVEAL_RESULT::MINE)
 	{
+		m_gameover = true;
+		m_world.RevealAllMines();
 		std::cout << "Boom" << std::endl;
 	}
 
-	if (m_world.CheckWin() && !m_has_won)
+	if (m_world.CheckWin())
 	{
 		m_has_won = true;
 		std::cout << "Congratulations you Win! Have cookie for your achievement." << std::endl;
