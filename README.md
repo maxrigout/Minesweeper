@@ -18,7 +18,7 @@ This project uses SDL as the main windowing system and as a renderer. You can in
 
 ## Todo
 - [x] Project refactor
-- [ ] Text (label for the pieces)
+- [ ] Text
 - [ ] Better graphics
 - [ ] Window and input system
 - [ ] Setup script
