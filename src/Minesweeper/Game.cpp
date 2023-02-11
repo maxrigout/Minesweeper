@@ -1,7 +1,9 @@
 
 #include <iostream>
+
 #include "Game.h"
 #include "Tile.h"
+#include "Renderer2D/SDL/Renderer2D_SDL.h"
 
 bool isButton(int b, MouseButton button)
 {
@@ -28,10 +30,14 @@ void Game::Init(int width, int height)
 {
 	InitSDL(width, height);
 	InitWorld();
+	m_isInitialized = m_isSDLInitialized && m_isWorldInitialized;
 }
 
 void Game::InitSDL(int width, int height)
 {
+	if (m_isSDLInitialized)
+		return;
+
 	SDL_Init(SDL_INIT_VIDEO);
 
 	// SDL_WindowFlags windowFlags = SDL_WINDOW_VULKAN;
@@ -45,33 +51,43 @@ void Game::InitSDL(int width, int height)
 		0
 	);
 
-	m_sdlRenderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	m_renderer.renderer = m_sdlRenderer;
-	m_renderer.windowWidth = width;
-	m_renderer.windowHeight = height;
+	m_renderer = new Renderer2D_SDL(SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
+
+	m_isSDLInitialized = true;
 }
 
 void Game::InitWorld()
 {
+	if (m_isWorldInitialized)
+		return;
+
 	m_has_won = false;
-	unsigned int maxCellWidth = m_renderer.windowWidth / m_world_w;
-	unsigned int maxCellHeight = m_renderer.windowHeight / m_world_h;
+	unsigned int maxCellWidth = m_renderer->GetWindowDim().w / m_world_w;
+	unsigned int maxCellHeight = m_renderer->GetWindowDim().h / m_world_h;
 	unsigned int cellSize = maxCellWidth > maxCellHeight ? maxCellHeight : maxCellWidth;
-	m_renderer.tileWidth = cellSize;
-	m_renderer.tileHeight = cellSize;
+	m_renderer->SetCellDim(vect2d{ (int)cellSize, (int)cellSize });
 	m_world.Init(m_world_w, m_world_h, m_nMines);
+
+	m_isWorldInitialized = true;
 }
 
 void Game::FreeSDL()
 {
-	SDL_DestroyRenderer(m_sdlRenderer);
+	if (!m_isSDLInitialized)
+		return;
+
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
+
+	m_isSDLInitialized = false;
 }
 
 void Game::FreeWorld()
 {
+	if (!m_isWorldInitialized)
+		return;
 
+	m_isWorldInitialized = false;
 }
 
 void Game::Run()
@@ -151,15 +167,27 @@ void Game::Update(float dt)
 {
 	if (m_gameover || m_has_won)
 		return;
-	vect2d worldMouse = { m_mousePos.x / m_renderer.tileWidth, m_mousePos.y / m_renderer.tileHeight };
-	int click_result = -1;
+	vect2d tileSize = m_renderer->GetCellDim();
+	vect2d worldMouse = { m_mousePos.x / tileSize.w, m_mousePos.y / tileSize.h };
 	if (IsMouseButtonJustPressed(MouseButton::LEFT))
 	{
 		m_pressed_tile = worldMouse;
 	}
 	if (IsMouseButtonJustReleased(MouseButton::LEFT) && m_pressed_tile.x == worldMouse.x && m_pressed_tile.y == worldMouse.y)
 	{
-		click_result = m_world.RevealTile(m_pressed_tile.x, m_pressed_tile.y);
+		int click_result = m_world.RevealTile(m_pressed_tile.x, m_pressed_tile.y);
+		if (click_result == World::REVEAL_RESULT::MINE)
+		{
+			m_gameover = true;
+			m_world.RevealAllMines();
+			std::cout << "Boom" << std::endl;
+		}
+
+		if (m_world.CheckWin())
+		{
+			m_has_won = true;
+			std::cout << "Congratulations you Win! Have cookie for your achievement." << std::endl;
+		}
 	}
 
 	if (IsMouseButtonJustPressed(MouseButton::RIGHT))
@@ -183,26 +211,11 @@ void Game::Update(float dt)
 			}
 		}
 	}
-
-
-	if (click_result == World::REVEAL_RESULT::MINE)
-	{
-		m_gameover = true;
-		m_world.RevealAllMines();
-		std::cout << "Boom" << std::endl;
-	}
-
-	if (m_world.CheckWin())
-	{
-		m_has_won = true;
-		std::cout << "Congratulations you Win! Have cookie for your achievement." << std::endl;
-	}
 }
 
 void Game::Render()
 {
-	SDL_SetRenderDrawColor(m_renderer.renderer, BLACK.r, BLACK.g, BLACK.b, BLACK.a);
-	SDL_RenderClear(m_renderer.renderer);
-	m_world.DrawTiles(&m_renderer);
-	SDL_RenderPresent(m_renderer.renderer);
+	m_renderer->Clear(BLACK);
+	m_world.DrawTiles(m_renderer);
+	m_renderer->End();
 }

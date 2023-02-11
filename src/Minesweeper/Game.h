@@ -37,15 +37,15 @@ private:
 
 
 	SDL_Window* m_window = nullptr;
-	SDL_Renderer* m_sdlRenderer = nullptr;
 	vect2d m_mousePos;
 	unsigned int m_currentMouseButtonState;
 	unsigned int m_mouseButtonState;
 	unsigned int m_previousMouseButtonState;
 
-	Renderer2D m_renderer;
-
-	bool m_isInitialized;
+	Renderer2D* m_renderer;
+	bool m_isSDLInitialized = false;
+	bool m_isWorldInitialized = false;
+	bool m_isInitialized = false;
 	bool m_isPlaying;
 
 	World m_world;

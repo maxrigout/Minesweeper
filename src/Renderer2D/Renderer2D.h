@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL2/SDL.h>
+#include <string>
 
 #include "Math/vect2d.h"
 
@@ -39,35 +39,26 @@ static const Color VERY_DARK_YELLOW{63, 63, 0, 255};
 static const Color VERY_DARK_CYAN{0, 63, 63, 255};
 static const Color VERY_DARK_MAGENTA{63, 0, 63, 255};
 
-struct Renderer2D
+class Renderer2D
 {
-	SDL_Renderer* renderer;
-	int windowWidth;
-	int windowHeight;
-	int tileWidth;
-	int tileHeight;
-	void DrawCircle(vect2d center, int radius, const Color& color) const
-	{
+public:
+	virtual ~Renderer2D() = default;
 
-	}
-	void FillCircle(vect2d center, int radius, const Color& color) const
-	{
-		SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-		SDL_Rect rect{center.x - radius, center.y - radius, 2 * radius, 2 * radius};
-		for (int y = 0; y < rect.h; ++y)
-		{
-			// find the 2 extreme points on the circle
-			float cosy = ((float)y / rect.h) * 2.0f * radius - radius;
-			float cos2y = (cosy * cosy) / radius / radius;
-			float cos2x = 1 - cos2y;
-			int x = radius * sqrt(cos2x);
-			vect2d left{center.x - x, rect.y + y};
-			vect2d right{center.x + x, rect.y + y};
-			SDL_RenderDrawLine(renderer, left.x, left.y, right.x, right.y);
-		}
-	}
-	void DrawDisk(vect2d center, int radius, const Color& color) const
-	{
-		return FillCircle(center, radius, color);
-	}
+	virtual void Begin() = 0;
+	virtual void End() = 0;
+	virtual void Clear(const Color& color) const = 0;
+	virtual void DrawDisk(vect2d center, int radius, const Color& color) const = 0;
+	virtual void DrawCircle(vect2d center, int radius, const Color& color) const = 0;
+	virtual void FillCircle(vect2d center, int radius, const Color& color) const = 0;
+	virtual void DrawRect(vect2d position, vect2d dimensions, const Color& color) const = 0;
+	virtual void FillRect(vect2d position, vect2d dimensions, const Color& color) const = 0;
+	virtual void DrawLine(vect2d start, vect2d end, const Color& color) const = 0;
+	virtual void DrawText(vect2d position, const std::string& text, const Color& color) const = 0;
+
+	virtual vect2d GetWindowDim() const = 0;
+	virtual vect2d GetCellDim() const = 0;
+	virtual vect2d GetViewPortDim() const = 0;
+	virtual void SetWindowDim(vect2d dim) = 0;
+	virtual void SetCellDim(vect2d dim) = 0;
+	virtual void SetViewPortDim(vect2d dim) = 0;
 };
