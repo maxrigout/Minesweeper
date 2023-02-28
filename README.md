@@ -49,7 +49,7 @@ Custom minesweeper engine, using SDL.
 ## Todo
 - [x] Project refactor
 - [x] Text
-- [ ] Better gameplay flow (eg. defficulty selection + restarts)
+- [ ] Better gameplay flow (eg. difficulty selection + restarts)
 - [ ] Better graphics
 - [ ] Window and input system
 - [ ] Setup script
